@@ -1,25 +1,83 @@
+"use client"
+import { useState } from "react"
+import { useForm, SubmitHandler } from "react-hook-form"
+import { z } from "zod"
+
+const InputsSchema = z.object({
+  areaEdf: z.coerce.number().positive(),
+  fatorRisco: z.coerce.number().positive(),
+  infraLeve: z.coerce.number().positive(),
+  infraMedia: z.coerce.number().positive(),
+  infraGrave: z.coerce.number().positive(),
+  infraGravissima: z.coerce.number().positive(),
+})
+
+type Inputs = z.infer<typeof InputsSchema>
 
 export default function Home() {
+  const [multaValue, setMultaValue] = useState<number>()
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<Inputs>({
+    defaultValues: {
+      infraLeve: 0,
+      infraMedia: 0,
+      infraGrave: 0,
+      infraGravissima: 0,
+    }
+  })
+  const onSubmit: SubmitHandler<Inputs> = ({ areaEdf, fatorRisco, infraLeve, infraMedia, infraGrave, infraGravissima}) => {
+    areaEdf = Number(areaEdf)
+    fatorRisco = Number(fatorRisco)
+    infraLeve = Number(infraLeve)
+    infraMedia = Number(infraMedia)
+    infraGrave = Number(infraGrave)
+    infraGravissima = Number(infraGravissima)
+    console.log(areaEdf)
+
+    const vbbm = 32.21
+
+    const multa =
+    (
+        2.5 * (infraLeve) + 
+        3.5 * (infraMedia) + 
+        5 * (infraGrave) + 
+        7 * (infraGravissima)
+    )
+
+    * fatorRisco 
+    * areaEdf 
+    * vbbm
+    
+  setMultaValue(multa)    
+    
+  }
+
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <form className="bg-white mx-auto w-2/3 px-3 py-1">
+      <form 
+      onSubmit={handleSubmit(onSubmit)} 
+      className="bg-white mx-auto px-3 py-1">
       <div className="border-b border-gray-900/10 pb-12">
           <h2 className="text-base font-semibold leading-7 text-gray-900">App para Cálculo de Multa de Infração - DAT</h2>
           <p className="mt-1 text-sm leading-6 text-gray-600">Preencha os campos abaixo para calcular o valor da multa.</p>
 
           <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
             <div className="sm:col-span-3">
-              <label htmlFor="country" className="block text-sm font-medium leading-6 text-gray-900">
+              <label htmlFor="areaEdf" className="block text-sm font-medium leading-6 text-gray-900">
                 Área Total Edificada
               </label>
               <div className="mt-2">
                 <select
-                  id="country"
-                  name="country"
-                  autoComplete="country-name"
+                  {...register("areaEdf", { required: true })}
+                  id="areaEdf"
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 >
-                  <option>selecione</option>
+                  <option value="">selecione</option>
                   <option value={4}>até 200m²</option>
                   <option value={8}>{'> 200m² ≤ 500m²'}</option>
                   <option value={12}>{'> 500m² ≤ 750m²'}</option>
@@ -39,37 +97,39 @@ export default function Home() {
                   <option value={100}>{'> 100.000m²'}</option>
                 </select>
               </div>
+                {errors.areaEdf && <span className="text-sm leading-4 text-red-500">Preenchimento obrigatório</span>}
             </div>
             
             <div className="sm:col-span-3">
-              <label htmlFor="fator-risco" className="block text-sm font-medium leading-6 text-gray-900">
-              Informe qual o Fator de Risco do Empreendimento:
+              <label htmlFor="fatorRisco" className="block text-sm font-medium leading-6 text-gray-900">
+              Fator de Risco:
               </label>
               <div className="mt-2">
                 <select
-                  id="fator-risco"
-                  name="fator-risco"
+                  {...register("fatorRisco", { required: true })}
+                  id="fatorRisco"
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 >
-                  <option>selecione</option>
+                  <option value="">selecione</option>
                   <option value={1}>Risco Baixo (até 300 MJ/m²)</option>
                   <option value={1.1}>Risco Médio (Entre 300 e 1.200 MJ/m²)</option>
                   <option value={1.2}>Risco Alto (Acima de 1.200 MJ/m²)</option>
                 </select>
               </div>
+              {errors.fatorRisco && <span className="text-sm leading-4 text-red-500">Preenchimento obrigatório</span>}
             </div>
 
           {/* INFRACOES LEVES */}
           <div className="sm:col-span-3">
-              <label htmlFor="infra-leve" className="block text-sm font-medium leading-6 text-gray-900">
-                Quantas Infrações Leves foram observadas?
+              <label htmlFor="infraLeve" className="block text-sm font-medium leading-6 text-gray-900">
+                Infrações Leves?
               </label>
               <div className="mt-2">
               <input
                 type="number"
                 min="0"
-                name="infra-leve"
-                id="infra-leve"
+                {...register("infraLeve")}
+                id="infraLeve"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
               </div>
@@ -77,15 +137,15 @@ export default function Home() {
 
           {/* INFRACOES Meedia */}
           <div className="sm:col-span-3">
-              <label htmlFor="infra-media" className="block text-sm font-medium leading-6 text-gray-900">
-                Quantas Infrações Médias foram observadas?
+              <label htmlFor="infraMedia" className="block text-sm font-medium leading-6 text-gray-900">
+                Infrações Médias?
               </label>
               <div className="mt-2">
               <input
                 type="number"
                 min="0"
-                name="infra-media"
-                id="infra-media"
+                {...register("infraMedia")}
+                id="infraMedia"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
               </div>
@@ -93,15 +153,15 @@ export default function Home() {
 
           {/* INFRACOES Graves */}
           <div className="sm:col-span-3">
-              <label htmlFor="infra-grave" className="block text-sm font-medium leading-6 text-gray-900">
-                Quantas Infrações Graves foram observadas?
+              <label htmlFor="infraGrave" className="block text-sm font-medium leading-6 text-gray-900">
+                Infrações Graves?
               </label>
               <div className="mt-2">
               <input
                 type="number"
                 min="0"
-                name="infra-grave"
-                id="infra-grave"
+                {...register("infraGrave")}
+                id="infraGrave"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
               </div>
@@ -109,22 +169,22 @@ export default function Home() {
 
           {/* INFRACOES Gravíssimas */}
           <div className="sm:col-span-3">
-              <label htmlFor="infra-gravissiama" className="block text-sm font-medium leading-6 text-gray-900">
-                Quantas Infrações Gravíssimas foram observadas?
+              <label htmlFor="infraGravissima" className="block text-sm font-medium leading-6 text-gray-900">
+                Infrações Gravíssimas?
               </label>
               <div className="mt-2">
               <input
                 type="number"
                 min="0"
-                name="infra-gravissiama"
-                id="infra-gravissiama"
+                {...register("infraGravissima")}
+                id="infraGravissima"
                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
               </div>
             </div>
 
             <div className="sm:col-span-3">
-              <p className="flex items-center justify-start gap-2">Valor total da Multa: R$ <span></span></p>
+              <p className="flex items-center justify-start gap-2">Valor total da Multa: <span className="font-semibold">{multaValue?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></p>
             </div>
 
             <button 
